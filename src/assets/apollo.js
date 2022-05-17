@@ -3,7 +3,7 @@ import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client/core
 // HTTP connection to the API
 const link = createHttpLink({
   // You should use an absolute URL here
-  uri: 'http://127.0.0.1:3000/graphql',
+  uri: import.meta.env.VITE_API,
   // headers: {
   //   "Access-Control-Allow-Origin": "http://127.0.0.1:3000/"
   // },
