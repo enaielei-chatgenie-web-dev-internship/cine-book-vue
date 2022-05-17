@@ -13,24 +13,13 @@ onUpdated(() => {
 });
 
 onBeforeMount(() => {
-    if(!store.signedIn) store.router.push({name: "root"});
-});
-
-const cinema = reactive({
-    name: "",
-    location: "",
-    get seats() {
-        return this._seats ?? 1;
-    },
-    set seats(val) {
-        this._seats = Math.max(1, val);
-    } 
+    if(!store.signedIn?.admin) store.router.push({name: "root"});
 });
 
 function submit() {
-    store.createCinema(cinema, (r) => {
-        store.$state._cinemas.refetch();
-        store.setMessages(...r.data.createCinema.messages);
+    store.createTimeslot(timeslot, (r) => {
+        store.$state._timeslots.refetch();
+        store.setMessages(...r.data.createTimeslot.messages);
     });
 }
 
@@ -42,53 +31,50 @@ function deleteSelected() {
     
     // $(selector.selected).each((e) => selector.deselect(e));
     const ph = selected.map((e) => "?").join(", ");
-    store.destroyCinema({
+    store.destroyTimeslot({
         condition: `id in (${ph})`,
         values: selected
     }, (r) => {
-        store.$state._cinemas.refetch();
-        store.setMessages(...r.data.destroyCinema.messages);
+        store.$state._timeslots.refetch();
+        store.setMessages(...r.data.destroyTimeslot.messages);
     })
+}
+
+function test(e) {
+    console.log(e.target.value);
 }
 </script>
 
-<template>
-    <PageHeader title="Cinemas" :subtitle='store.signedIn?.admin ? "View your registered cinemas." : "Look for diffent cinemas to watch a movie."' />
+<template v-if="store.signedIn.admin">
+    <PageHeader title="Timeslots" subtitle='View your registered timeslots.' />
     <div class="ui basic labels">
         <a class="ui label">
             Total
-            <div class="detail">{{store.cinemas.length}}</div>
+            <div class="detail">{{store.timeslots.length}}</div>
         </a>
     </div>
     <div class="ui divider"></div>
     <form class="ui form" @submit.prevent="submit">
+        <input type="hidden"
+            v-model="timeslot.time"
+            name="timeslot[time]" required>
         <div class="field">
-            <label for="cinema_name">Name</label>
-            <div class="ui left icon input">
-                <input
-                    v-model="cinema.name"
-                    type="text" name="cinema[name]" id="cinema_name" required>
-                <i class="tag icon"></i>
+            <label for="timeslot_time_">Time</label>
+            <div class="ui calendar time">
+                <div class="ui left icon input">
+                    <input
+                        type="text" id="timeslot_time_" required>
+                    <i class="time icon"></i>
+                </div>
             </div>
         </div>
-        <div class="two fields">
-            <div class="field">
-                <label for="cinema_location">Location</label>
-                <div class="ui left icon input">
-                    <input
-                        v-model="cinema.location"
-                        type="text" name="cinema[location]" id="cinema_location" required>
-                    <i class="marker icon"></i>
-                </div>
-            </div>
-            <div class="field">
-                <label for="cinema_seats">Seats</label>
-                <div class="ui left icon input">
-                    <input
-                        v-model="cinema.seats"
-                        type="number" name="cinema[seats]" id="cinema_seats" required>
-                    <i class="chair icon"></i>
-                </div>
+        <div class="field">
+            <label for="timeslot_label">Label</label>
+            <div class="ui left icon input">
+                <input
+                    v-model="timeslot.label"
+                    type="text" name="timeslot[label]" id="timeslot_label">
+                <i class="tag icon"></i>
             </div>
         </div>
         
@@ -112,28 +98,26 @@ function deleteSelected() {
                     <input class="selector main" type="checkbox" data-main-selector-id="0"><label></label>
                 </div>
             </th>
-            <th>Name</th>
-            <th>Location</th>
-            <th>Seats</th>
+            <th>Time</th>
+            <th>Label</th>
         </TableHeader>
         <tbody>
-            <template v-if="store.cinemas.length > 0"> 
-                <tr class="entries" v-for="cin, i in store.cinemas" :key="cin.id">
+            <template v-if="store.timeslots.length > 0"> 
+                <tr class="entries" v-for="tim, i in store.timeslots" :key="tim.id">
                     <td class="collapsing">
                         <div class="ui fitted checkbox">
-                            <input class="selector" :value="cin.id" type="checkbox" data-selector-id="0"><label></label>
+                            <input class="selector" :value="tim.id" type="checkbox" data-selector-id="0"><label></label>
                         </div>
                     </td>
                     <td>
                         <h6 class="ui image header">
                             <img src="https://via.placeholder.com/50.png" class="ui mini rounded image">
                             <div class="content">
-                                <a href="#">{{cin.name}}</a>
+                                <a href="#">{{tim.time}}</a>
                             </div>
                         </h6>
                     </td>
-                    <td>{{cin.location}}</td>
-                    <td>{{cin.seats}}</td>
+                    <td>{{tim.label}}</td>
                 </tr>
             </template>
             <tr v-else><td colspan="4">No entries.</td></tr>
@@ -146,7 +130,22 @@ import {reactive, ref} from "vue";
 import Selector from "./../assets/selector.js";
 const selector = reactive(new Selector("0"));
 
+const timeslot = reactive({
+    time: "",
+    label: "",
+});
+
 $(() => {
     selector.initialize();
+    
+    $('.ui.calendar.time').calendar({
+        type: 'time',
+        disableMinute: true,
+        onChange() {
+            const date = $(this).calendar("get date");
+            timeslot.time = date?.toISOString() ?? ""; 
+            console.log(date);
+        }
+    });
 });
 </script>

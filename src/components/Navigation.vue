@@ -9,7 +9,10 @@ function genNav(url, active, text, icon, data=null) {
         get url() {
             return url();
         },
-        active, text, icon, data,
+        get active() {
+            return active();
+        },
+        text, icon, data,
         get visible() {
             return this.url != null;
         }
@@ -19,56 +22,56 @@ function genNav(url, active, text, icon, data=null) {
 const navs = ref([
     genNav(
         () => !store.signedIn ? "#" : null,
-        true,
+        () => true,
         "Auth",
         "orange lock",
         null
     ),
     genNav(
         () => store.signedIn ? "#" : null,
-        false,
+        () => store.route.name  == "root",
         "Overview",
         "orange eye",
         null
     ),
     genNav(
         () => store.signedIn ? "/cinemas" : null,
-        false,
+        () => store.route.name  == "cinemas",
         "Cinemas",
         "orange theater masks",
         null
     ),
     genNav(
-        () => store.signedIn ? "#" : null,
-        false,
+        () => store.signedIn ? "/movies" : null,
+        () => store.route.name  == "movies",
         "Movies",
         "orange film",
         null
     ),
     genNav(
-        () => store.signedIn?.admin ? "#" : null,
-        false,
+        () => store.signedIn?.admin ? "/timeslots" : null,
+        () => store.route.name  == "timeslots",
         "Timeslots",
         "orange clock",
         null
     ),
     genNav(
         () => store.signedIn ? "#" : null,
-        false,
+        () => store.route.name  == "showings",
         "Showings",
         "orange tv",
         null
     ),
     genNav(
         () => store.signedIn ? "#" : null,
-        false,
+        () => store.route.name  == "bookings",
         "Bookings",
         "orange clipboard list",
         null
     ),
     genNav(
         () => store.signedIn ? "#" : null,
-        false,
+        () => false,
         "Sign Out",
         "orange sign out alternate",
         null

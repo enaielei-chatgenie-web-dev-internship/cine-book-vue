@@ -16,21 +16,15 @@ onBeforeMount(() => {
     if(!store.signedIn) store.router.push({name: "root"});
 });
 
-const cinema = reactive({
-    name: "",
-    location: "",
-    get seats() {
-        return this._seats ?? 1;
-    },
-    set seats(val) {
-        this._seats = Math.max(1, val);
-    } 
+const movie = reactive({
+    title: "",
+    description: "",
 });
 
 function submit() {
-    store.createCinema(cinema, (r) => {
-        store.$state._cinemas.refetch();
-        store.setMessages(...r.data.createCinema.messages);
+    store.createMovie(movie, (r) => {
+        store.$state._movies.refetch();
+        store.setMessages(...r.data.createMovie.messages);
     });
 }
 
@@ -42,53 +36,44 @@ function deleteSelected() {
     
     // $(selector.selected).each((e) => selector.deselect(e));
     const ph = selected.map((e) => "?").join(", ");
-    store.destroyCinema({
+    store.destroyMovie({
         condition: `id in (${ph})`,
         values: selected
     }, (r) => {
-        store.$state._cinemas.refetch();
-        store.setMessages(...r.data.destroyCinema.messages);
+        store.$state._movies.refetch();
+        store.setMessages(...r.data.destroyMovie.messages);
     })
 }
 </script>
 
 <template>
-    <PageHeader title="Cinemas" :subtitle='store.signedIn?.admin ? "View your registered cinemas." : "Look for diffent cinemas to watch a movie."' />
+    <PageHeader title="Movies" :subtitle='store.signedIn?.admin ? "View your registered movies." : "Look for different movies to watch."' />
     <div class="ui basic labels">
         <a class="ui label">
             Total
-            <div class="detail">{{store.cinemas.length}}</div>
+            <div class="detail">{{store.movies.length}}</div>
         </a>
     </div>
     <div class="ui divider"></div>
     <form class="ui form" @submit.prevent="submit">
         <div class="field">
-            <label for="cinema_name">Name</label>
+            <label for="movie_title">Title</label>
             <div class="ui left icon input">
                 <input
-                    v-model="cinema.name"
-                    type="text" name="cinema[name]" id="cinema_name" required>
+                    v-model="movie.title"
+                    type="text" name="movie[title]" id="movie_title" required>
                 <i class="tag icon"></i>
             </div>
         </div>
-        <div class="two fields">
-            <div class="field">
-                <label for="cinema_location">Location</label>
-                <div class="ui left icon input">
-                    <input
-                        v-model="cinema.location"
-                        type="text" name="cinema[location]" id="cinema_location" required>
-                    <i class="marker icon"></i>
-                </div>
-            </div>
-            <div class="field">
-                <label for="cinema_seats">Seats</label>
-                <div class="ui left icon input">
-                    <input
-                        v-model="cinema.seats"
-                        type="number" name="cinema[seats]" id="cinema_seats" required>
-                    <i class="chair icon"></i>
-                </div>
+        <div class="field">
+            <label for="movie_description">Description</label>
+            <div class="ui left icon input">
+                <textarea
+                    v-model="movie.description"
+                    rows="5"
+                    type="text" name="movie[description]" id="movie_description">
+                </textarea>
+                <i class="pen icon"></i>
             </div>
         </div>
         
@@ -112,28 +97,26 @@ function deleteSelected() {
                     <input class="selector main" type="checkbox" data-main-selector-id="0"><label></label>
                 </div>
             </th>
-            <th>Name</th>
-            <th>Location</th>
-            <th>Seats</th>
+            <th>Title</th>
+            <th>Description</th>
         </TableHeader>
         <tbody>
-            <template v-if="store.cinemas.length > 0"> 
-                <tr class="entries" v-for="cin, i in store.cinemas" :key="cin.id">
+            <template v-if="store.movies.length > 0"> 
+                <tr class="entries" v-for="mov, i in store.movies" :key="mov.id">
                     <td class="collapsing">
                         <div class="ui fitted checkbox">
-                            <input class="selector" :value="cin.id" type="checkbox" data-selector-id="0"><label></label>
+                            <input class="selector" :value="mov.id" type="checkbox" data-selector-id="0"><label></label>
                         </div>
                     </td>
                     <td>
                         <h6 class="ui image header">
                             <img src="https://via.placeholder.com/50.png" class="ui mini rounded image">
                             <div class="content">
-                                <a href="#">{{cin.name}}</a>
+                                <a href="#">{{mov.title}}</a>
                             </div>
                         </h6>
                     </td>
-                    <td>{{cin.location}}</td>
-                    <td>{{cin.seats}}</td>
+                    <td>{{mov.description}}</td>
                 </tr>
             </template>
             <tr v-else><td colspan="4">No entries.</td></tr>
